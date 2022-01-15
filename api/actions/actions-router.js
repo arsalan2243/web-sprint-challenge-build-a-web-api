@@ -1,26 +1,35 @@
-// Write your "actions" router here!
 const express = require("express")
-const router = express.Router()
 const Action = require("./actions-model")
-const { checkId } = require("./actions-middlware.js")
+const router = express.Router()
+
+const { checkId, validateAction } = require("./actions-middlware")
 
 router.get("/", async (req, res, next) => {
   try {
     const allActions = await Action.get()
     res.status(200).json(allActions)
-  } catch (error) {
-    next(error)
+  } catch (err) {
+    next(err)
   }
 })
-router.get("/:id", checkId, async (req, res) => {
+
+router.get("/:id", checkId, (req, res) => {
   res.status(200).json(req.found)
 })
-router.post("/", (req, res, next) => {})
-// router.get("/", (req, res, next) => {
 
-// })
-// router.get("/", (req, res, next) => {
+router.post("/", validateAction, async (req, res) => {
+  const newAction = await Action.insert(req.body)
+  res.status(201).json(newAction)
+})
 
-// })
+router.put("/:id", checkId, validateAction, async (req, res) => {
+  const updatedAction = await Action.update(req.params.id, req.body)
+  res.status(200).json(updatedAction)
+})
+
+router.delete("/:id", checkId, async (req, res) => {
+  const deletedAction = await Action.remove(req.params.id)
+  res.status(200).json(deletedAction)
+})
 
 module.exports = router
